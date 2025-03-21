@@ -8,6 +8,27 @@ import {
 } from "../types";
 import { CanvasRef } from "../Canvas/types";
 import { ReactSketchCanvasProps, ReactSketchCanvasRef } from "./types";
+import { Editor, Vec, VecLike } from "@tldraw/tldraw";
+
+// function pageToViewport(point: VecLike) {
+//   const { x: cx, y: cy, z: cz = 1 } = this.getCamera()
+//   return new Vec((point.x + cx) * cz, (point.y + cy) * cz, point.z ?? 0.5)
+// }
+
+function viewportToPage(editor: Editor, _shape: any, point: VecLike) {
+  const { z: cz = 1 } = editor.getCamera();
+  const zoomedX = point.x / cz;
+  const zoomedY = point.y / cz;
+  // const dx = zoomedX - shape.x;
+  // const dy = zoomedY - shape.y;
+  // const cos = Math.cos(shape.rotation);
+  // const sin = Math.sin(shape.rotation);
+  // const rotatedX = dx * cos - dy * sin + shape.props.x;
+  // const rotatedY = dx * sin + dy * cos + shape.props.y;
+  return new Vec(zoomedX, zoomedY, point.z ?? 0.5);
+  // return new Vec(rotatedX, rotatedY, point.z ?? 0.5);
+  // return new Vec(point.x / cz, point.y / cz, point.z ?? 0.5);
+}
 
 /**
  * ReactSketchCanvas is a wrapper around Canvas component to provide a controlled way to manage the canvas paths.
@@ -45,6 +66,8 @@ export const ReactSketchCanvas = React.forwardRef<
     withTimestamp = false,
     withViewBox = false,
     readOnly = false,
+    editor,
+    shape,
   } = props;
 
   const svgCanvas = React.createRef<CanvasRef>();
@@ -176,11 +199,18 @@ export const ReactSketchCanvas = React.forwardRef<
 
     const isDraw = !isEraser && drawMode;
 
+    const mappedPoint =
+      editor && shape
+        ? // ? editor.pageToViewport(editor.screenToPage(point))
+          // editor.screenToPage(point)
+          viewportToPage(editor, shape, point)
+        : point;
+
     let stroke: CanvasPath = {
       drawMode: isDraw,
       strokeColor: isDraw ? strokeColor : "#000000", // Eraser using mask
       strokeWidth: isDraw ? strokeWidth : eraserWidth,
-      paths: [point],
+      paths: [mappedPoint],
     };
 
     if (withTimestamp) {
@@ -197,10 +227,18 @@ export const ReactSketchCanvas = React.forwardRef<
   const handlePointerMove = (point: Point): void => {
     if (!isDrawing) return;
 
+    const mappedPoint =
+      editor && shape
+        ? // ? editor.pageToViewport(editor.screenToPage(point))
+          // editor.screenToPage(point)
+          viewportToPage(editor, shape, point)
+        : point;
+    // console.log(mappedPoint, point);
+
     const currentStroke = currentPaths.slice(-1)[0];
     const updatedStroke = {
       ...currentStroke,
-      paths: [...currentStroke.paths, point],
+      paths: [...currentStroke.paths, mappedPoint],
     };
     setCurrentPaths((paths) => [...paths.slice(0, -1), updatedStroke]);
   };

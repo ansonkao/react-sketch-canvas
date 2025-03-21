@@ -1,4 +1,5 @@
 /* Props validation */
+import { Editor } from "@tldraw/tldraw";
 import { CanvasProps, CanvasRef } from "../Canvas/types";
 import { CanvasPath } from "../types";
 
@@ -65,6 +66,10 @@ export interface ReactSketchCanvasProps
    * @defaultValue false
    */
   withTimestamp?: boolean;
+
+  editor?: Editor;
+
+  shape?: any;
 }
 
 /**

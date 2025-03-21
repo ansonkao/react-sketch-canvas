@@ -64,5 +64,8 @@
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/"
+  },
+  "dependencies": {
+    "@tldraw/tldraw": "^3.11.0"
   }
 }
